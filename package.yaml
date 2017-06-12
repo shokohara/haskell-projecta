@@ -1,11 +1,11 @@
-name: rbac
+name: projecta
 version: '0.1.0.0'
 category: Web
 author: Author name here
 maintainer: example@example.com
 copyright: 2017 Author name here
 license: BSD3
-github: shokohara/haskell-rbac
+github: shokohara/haskell-projecta
 extra-source-files:
 - README.md
 library:
@@ -32,7 +32,7 @@ library:
   - HDBC
   - HTTP
 executables:
-  rbac-exe:
+  projecta-exe:
     main: Main.hs
     source-dirs: app
     ghc-options:
@@ -41,7 +41,7 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - base
-    - rbac
+    - projecta
     - wai-logger
     - servant-server
     - servant
@@ -49,7 +49,7 @@ executables:
     - text
     - warp
 tests:
-  rbac-test:
+  projecta-test:
     main: Spec.hs
     source-dirs: test
     ghc-options:
@@ -58,7 +58,7 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - base
-    - rbac
+    - projecta
     - hspec
     - hspec-discover
     - hspec-wai
