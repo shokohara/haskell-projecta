@@ -1,6 +1,4 @@
-{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DeriveGeneric #-}
 
 module App where
 
@@ -8,7 +6,6 @@ import Data.Char
 import Data.String.Here
 import Control.Lens ((&), (.~), (<&>), (?~), (^.), (^..), (^?))
 import Data.Text hiding (minimum, concat)
-import GHC.Generics (Generic)
 import Network.Google
 import Network.Google.Compute
 import Network.Google.Compute.Types
