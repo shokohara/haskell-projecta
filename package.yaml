@@ -14,21 +14,25 @@ library:
   - App
   dependencies:
   - base >=4.7 && <5
+  - bytestring
+  - yaml
   - aeson
   - aeson-casing
+  - process
   - servant-server
   - text
   - monad-logger
   - transformers
   - wai-logger
-  - HsOpenSSL
-  - time ==1.6.0.1
-  - wreq
+  - aeson-pretty
+  - gogol
+  - gogol-core
+  - gogol-compute
+  - gogol-pubsub
   - http-client
-  - http-client-tls
   - lens
+  - here
   - lens-aeson
-  - http-client-openssl
   - HDBC
   - HTTP
 executables:
@@ -43,8 +47,6 @@ executables:
     - base
     - projecta
     - wai-logger
-    - servant-server
-    - servant
     - wai
     - text
     - warp

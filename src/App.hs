@@ -1,46 +1,66 @@
-{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 module App where
 
-import Network.Wreq
-import Control.Lens
-import Data.Maybe
-import Data.Aeson (FromJSON, decode)
-import OpenSSL.Session (context)
-import Network.HTTP.Client.OpenSSL
-import Network.HTTP.Client (defaultManagerSettings, managerResponseTimeout)
+import Data.Char
+import Data.String.Here
+import Control.Lens ((&), (.~), (<&>), (?~), (^.), (^..), (^?))
+import Data.Text hiding (minimum, concat)
 import GHC.Generics (Generic)
-import Data.Text hiding (minimum)
-import Js (Js)
-import qualified Js
-import Tf (Tf)
-import qualified Tf
---import MinTf (MinTf)
---import qualified MinTf
-
-opt = defaults & manager .~ Left (opensslManagerSettings context)
-
-instance FromJSON Js
-instance FromJSON Tf
-
-minn :: Tf -> Int
-minn a = minimum $ fmap (\f -> f a) [Tf.carNo1, Tf.carNo2, Tf.carNo3, Tf.carNo4, Tf.carNo5, Tf.carNo6, Tf.carNo7, Tf.carNo8, Tf.carNo9, Tf.carNo10, Tf.carNo11]
+import Network.Google
+import Network.Google.Compute
+import Network.Google.Compute.Types
+import Network.Google.PubSub
+import Network.Google.PubSub.Types
+import Network.Google.Resource.Compute.Instances.Insert
+import Network.Google.Resource.PubSub.Projects.Subscriptions.Pull
+import System.IO (stdout, hGetContents)
+import qualified Data.Text as T
+import qualified Network.Google as Google
+import qualified Network.Google.Compute as Compute
+import qualified Network.Google.PubSub as PubSub
+import Data.Aeson.Encode.Pretty hiding (Config)
+import qualified Data.ByteString.Lazy.Char8 as BS
+import Data.Maybe
+import GHC.Generics
+import System.Process
+import qualified Data.Yaml as Y
+import Data.Yaml (FromJSON(..), (.:))
+import Config
+import qualified Config as C
+import System.Exit
 
 run :: IO ()
 run = do
-  r <- withOpenSSL $ getWith opt "https://rp.cloudrail.jp/tw02/jreast_app/fb/feedback/feedback/?accessTime=2330&accessDayCd=4&direction=0"
-  print $ (fmap minn . trainFeedbackList) <$> (decode (r ^. responseBody) :: Maybe Js)
+  mConfig <- run2
+  case mConfig of
+    Just config -> do
+      run3 config
+      run1 config
+    Nothing -> die "error"
 
--- min :: Js -> [MinTf]
--- min js = fmap trainFeedbackList
+run3 config = do
+  (_, Just hout, _, _) <- createProcess (proc "mkdir" ["-p", T.unpack $ directory config]) { cwd = Just ".", std_out = CreatePipe }
+  b <- hGetContents hout
+  putStrLn b
+  (_, Just hout, _, _) <- createProcess (proc "ls" []) { cwd = Just $ T.unpack $ C.directory config, std_out = CreatePipe }
+  a <- hGetContents hout
+  putStrLn a
+  (_, Just hout, _, _) <- createProcess (proc "ls" []) { cwd = Just ".", std_out = CreatePipe }
+  c <- hGetContents hout
+  putStrLn c
 
+run1 :: Config -> IO ()
+run1 config = do
+  putStrLn "start"
+  lgr <- Google.newLogger Google.Debug stdout
+  env <- Google.newEnv <&> (Google.envLogger .~ lgr) . (Google.envScopes .~ PubSub.pubSubScope)
+  r <- runResourceT . Google.runGoogle env $ Google.send $ projectsSubscriptionsPull (pullRequest & prMaxMessages ?~ 1) $ C.subscription config
+  BS.putStrLn $ encodePretty (catMaybes (flip (^.) pmAttributes <$> catMaybes (flip (^.) rmMessage <$> concat (r ^.. prReceivedMessages))))
+  return ()
 
--- 外回り direction=0
--- 内回り direction=1
--- 日曜日 accessDayCd=1
--- 土曜日            =7
--- 月曜日            =2
--- 時間帯 accessTime=0400, 2330, 0000
--- first=true or empty 更新ボタンを押したときのみfirst=trueがつく
--- _=unixtime
+run2 :: IO (Maybe Config)
+run2 = Y.decodeFile "config.yaml" :: IO (Maybe Config)
+
