@@ -29,12 +29,18 @@ library:
   - gogol-core
   - gogol-compute
   - gogol-pubsub
+  - random
+  - gogol-storage
   - http-client
+  - conduit
+  - conduit-extra
   - lens
+  - resourcet
   - here
   - lens-aeson
   - HDBC
   - HTTP
+  - uuid
 executables:
   projecta-exe:
     main: Main.hs

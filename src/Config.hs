@@ -30,10 +30,11 @@ import qualified Data.Yaml as Y
 import Data.Yaml (FromJSON(..), (.:))
 
 data Config =  Config {
-          project  :: Text
+          project :: Text
+            , bucket :: Text
             , directory :: Text
             , subscription  :: Text
-         } deriving (Eq, Show, Generic)
+                      } deriving (Eq, Show, Generic)
 
 instance FromJSON Config
 
